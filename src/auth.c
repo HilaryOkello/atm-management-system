@@ -33,6 +33,10 @@ void loginMenu(char a[50], char pass[50])
     }
 };
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 const char *getPassword(struct User u)
 {
     FILE *fp;
@@ -44,13 +48,20 @@ const char *getPassword(struct User u)
         exit(1);
     }
 
-    while (fscanf(fp, "%s %s", userChecker.name, userChecker.password) != EOF)
+    while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
     {
         if (strcmp(userChecker.name, u.name) == 0)
         {
             fclose(fp);
-            char *buff = userChecker.password;
-            return buff;
+            // Allocate memory for the password and return it
+            char *password = malloc(strlen(userChecker.password) + 1);
+            if (password == NULL)
+            {
+                printf("Memory allocation failed");
+                exit(1);
+            }
+            strcpy(password, userChecker.password);
+            return password;
         }
     }
 
