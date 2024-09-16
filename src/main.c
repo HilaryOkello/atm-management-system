@@ -56,6 +56,7 @@ void initMenu(struct User *u)
 {
     int r = 0;
     int option;
+    char name[50], password[50];
     system("clear");
     printf("\n\n\t\t======= ATM =======\n");
     printf("\n\t\t-->> Feel free to login / register :\n");
@@ -81,8 +82,11 @@ void initMenu(struct User *u)
             r = 1;
             break;
         case 2:
-            // student TODO : add your **Registration** function
-            // here
+            printf("Enter your name: ");
+            scanf("%s", name);
+            printf("Enter your password: ");
+            scanf("%s", password);
+            registerMenu(name, password);
             r = 1;
             break;
         case 3:
@@ -97,7 +101,7 @@ void initMenu(struct User *u)
 int main()
 {
     struct User u;
-    
+
     initMenu(&u);
     mainMenu(u);
     return 0;
