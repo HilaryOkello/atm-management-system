@@ -102,7 +102,19 @@ void createNewAcc(struct User u)
     struct Record r;
     struct Record cr;
     char userName[50];
+    int maxId = -1;
     FILE *pf = fopen(RECORDS, "a+");
+
+    while (getAccountFromFile(pf, userName, &cr))
+    {
+        if (cr.id > maxId)
+        {
+            maxId = cr.id;
+        }
+    }
+
+    // Set the new record id
+    r.id = maxId + 1;
 
 noAccount:
     system("clear");

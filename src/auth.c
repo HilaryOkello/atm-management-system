@@ -3,7 +3,7 @@
 
 char *USERS = "./data/users.txt";
 
-void registerMenu(char name[50], char password[50]) {
+void registerMenu(char name[50], char password[50], struct User *u){
     FILE *fp;
     struct User user;
     int id = 0;
@@ -37,6 +37,11 @@ void registerMenu(char name[50], char password[50]) {
     fprintf(fp, "%d %s %s\n", id, name, password);
     
     fclose(fp);
+
+     // Update the current user struct with new user details
+    u->id = id;
+    strcpy(u->name, name);
+    strcpy(u->password, password);
     
     printf("Registration successful!\n");
 }

@@ -86,7 +86,7 @@ void initMenu(struct User *u)
             scanf("%s", name);
             printf("Enter your password: ");
             scanf("%s", password);
-            registerMenu(name, password);
+            registerMenu(name, password, u);
             r = 1;
             break;
         case 3:
