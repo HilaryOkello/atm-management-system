@@ -86,8 +86,15 @@ void initMenu(struct User *u)
             scanf("%s", name);
             printf("Enter your password: ");
             scanf("%s", password);
-            registerMenu(name, password, u);
-            r = 1;
+            if (registerMenu(name, password, u) == 1)
+            {
+                printf("Registration successful!\n");
+                r = 1; // Set r to 1 to exit the loop
+            }
+            else
+            {
+                printf("Invalid username.Please try a different username by selecting register or login.\n");
+            }
             break;
         case 3:
             exit(1);

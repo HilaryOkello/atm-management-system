@@ -3,20 +3,23 @@
 
 char *USERS = "./data/users.txt";
 
-void registerMenu(char name[50], char password[50], struct User *u){
+int registerMenu(char name[50], char password[50], struct User *u)
+{
     FILE *fp;
     struct User user;
     int id = 0;
     
     fp = fopen("./data/users.txt", "a+");
     
-    if (fp == NULL) {
+    if (fp == NULL)
+    {
         printf("Error opening file!\n");
         exit(1);
     }
     
     // Find the last used ID
-    while (fscanf(fp, "%d %s %s", &user.id, user.name, user.password) != EOF) {
+    while (fscanf(fp, "%d %s %s", &user.id, user.name, user.password) != EOF)
+    {
         id = user.id;
     }
     
@@ -25,11 +28,12 @@ void registerMenu(char name[50], char password[50], struct User *u){
     
     // Check if the username already exists
     rewind(fp);
-    while (fscanf(fp, "%d %s %s", &user.id, user.name, user.password) != EOF) {
-        if (strcmp(user.name, name) == 0) {
-            printf("Username already exists. Please choose a different username.\n");
+    while (fscanf(fp, "%d %s %s", &user.id, user.name, user.password) != EOF)
+    {
+        if (strcmp(user.name, name) == 0)
+        {
             fclose(fp);
-            return;
+            return 0; // Username already exists
         }
     }
     
@@ -38,12 +42,12 @@ void registerMenu(char name[50], char password[50], struct User *u){
     
     fclose(fp);
 
-     // Update the current user struct with new user details
+    // Update the current user struct with new user details
     u->id = id;
     strcpy(u->name, name);
     strcpy(u->password, password);
     
-    printf("Registration successful!\n");
+    return 1; // Registration successful
 }
 
 void loginMenu(char a[50], char pass[50])
