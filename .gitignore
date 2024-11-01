@@ -1,0 +1,4 @@
+# Ignore any files without extensions (often binaries on Unix)
+*~
+# Ignore all object files
+*.o

@@ -69,17 +69,19 @@ void initMenu(struct User *u)
         switch (option)
         {
         case 1:
-            loginMenu(u->name, u->password);
-            if (strcmp(u->password, getPassword(*u)) == 0)
+            loginMenu(u->name, password); // Get username and password input
+
+            // Attempt to log in and update `u` if successful
+            if (getUserDetails(u, password))
             {
-                printf("\n\nPassword Match!");
+                printf("\n\nPassword Match! Logged in as user ID %d, Name: %s\n", u->id, u->name);
+                r = 1; // Exit the loop on successful login
             }
             else
             {
-                printf("\nWrong password!! or User Name\n");
+                printf("\nWrong password or username!\n");
                 exit(1);
             }
-            r = 1;
             break;
         case 2:
             printf("Enter your name: ");

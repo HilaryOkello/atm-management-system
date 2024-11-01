@@ -84,34 +84,38 @@ void loginMenu(char a[50], char pass[50])
 #include <stdlib.h>
 #include <string.h>
 
-const char *getPassword(struct User u)
+int getUserDetails(struct User *u, const char *enteredPassword)
 {
     FILE *fp;
     struct User userChecker;
 
     if ((fp = fopen("./data/users.txt", "r")) == NULL)
     {
-        printf("Error! opening file");
+        printf("Error! opening file\n");
         exit(1);
     }
 
+    // Search for the user by name and check the password
     while (fscanf(fp, "%d %s %s", &userChecker.id, userChecker.name, userChecker.password) != EOF)
     {
-        if (strcmp(userChecker.name, u.name) == 0)
+        if (strcmp(userChecker.name, u->name) == 0) // Match username
         {
-            fclose(fp);
-            // Allocate memory for the password and return it
-            char *password = malloc(strlen(userChecker.password) + 1);
-            if (password == NULL)
+            if (strcmp(userChecker.password, enteredPassword) == 0) // Match password
             {
-                printf("Memory allocation failed");
-                exit(1);
+                fclose(fp);
+                // Populate the User struct with ID and name
+                u->id = userChecker.id;
+                strcpy(u->name, userChecker.name);
+                return 1; // Successful login
             }
-            strcpy(password, userChecker.password);
-            return password;
+            else
+            {
+                fclose(fp);
+                return 0; // Password mismatch
+            }
         }
     }
 
     fclose(fp);
-    return "no user found";
+    return 0; // User not found
 }
