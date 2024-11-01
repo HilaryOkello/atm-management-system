@@ -2,12 +2,12 @@
 
 const char *RECORDS = "./data/records.txt";
 
-int getAccountFromFile(FILE *ptr, int *userId, struct Record *r)
+int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 {
     return fscanf(ptr, "%d %d %s %d %d/%d/%d %s %d %lf %s",
                   &r->id,
-                  userId,
-                  r->name,
+                  &r->userId,
+                  name,
                   &r->accountNbr,
                   &r->deposit.month,
                   &r->deposit.day,
@@ -47,6 +47,28 @@ void updateAccountInFile(FILE *ptr, struct Record r)
             r.phone,
             r.amount,
             r.accountType);
+}
+
+int userHasAtLeastOneAccount(struct User u)
+{
+    char name[50];
+    struct Record r;
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+    while (getAccountFromFile(pf, name, &r))
+    {
+        if (strcmp(name, u.name) == 0)
+        {
+            fclose(pf);
+            return 1;
+        }
+    }
+    fclose(pf);
+    return 0;
 }
 
 void stayOrReturn(int notGood, void f(struct User u), struct User u)
@@ -115,11 +137,11 @@ void createNewAcc(struct User u)
 {
     struct Record r;
     struct Record cr;
-    int userId;
+    char name[50];
     int maxId = -1;
     FILE *pf = fopen(RECORDS, "a+");
 
-    while (getAccountFromFile(pf, &userId, &cr))
+    while (getAccountFromFile(pf, name, &cr))
     {
         if (cr.id > maxId)
         {
@@ -139,9 +161,9 @@ noAccount:
     printf("\nEnter the account number:");
     scanf("%d", &r.accountNbr);
 
-    while (getAccountFromFile(pf, &userId, &cr))
+    while (getAccountFromFile(pf, name, &cr))
     {
-        if (userId == u.id && cr.accountNbr == r.accountNbr)
+        if (strcmp(name, u.name) == 0 && cr.accountNbr == r.accountNbr)
         {
             printf("✖ This Account already exists for this user\n\n");
             goto noAccount;
@@ -164,6 +186,16 @@ noAccount:
 
 void updateAccInfo(struct User u)
 {
+    if (!userHasAtLeastOneAccount(u))
+    {
+        system("clear");
+        printf("\t\t\t===== Update Account Information =====\n");
+        printf("\t\t====== It seems like you do not have any accounts, %s =====\n\n", u.name);
+        printf("\t\t====== Consider creating one to be able to perform this operation, %s =====\n\n", u.name);
+        stayOrReturn(1, updateAccInfo, u);
+        return;
+    }
+
     struct Record r;
     struct Record records[100];
     int noOfRecords = 0;
@@ -184,9 +216,9 @@ void updateAccInfo(struct User u)
         perror("\n\t\tFailed to open file");
         return;
     }
-    while (getAccountFromFile(pf, &records[noOfRecords].userId, &records[noOfRecords]))
+    while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
     {
-        if (records[noOfRecords].accountNbr == targetAccountNbr && records[noOfRecords].userId == u.id)
+        if (records[noOfRecords].accountNbr == targetAccountNbr && records[noOfRecords].name == u.name)
         {
             r = records[noOfRecords];
             accountExists = 1;
@@ -255,7 +287,15 @@ void updateAccInfo(struct User u)
 
 void checkAllAccounts(struct User u)
 {
-    int userId;
+    if (!userHasAtLeastOneAccount(u))
+    {
+        system("clear");
+        printf("\t\t====== It seems like you do not have any accounts, %s =====\n\n", u.name);
+        printf("\t\t====== Consider creating one to be able to perform this operation, %s =====\n\n", u.name);
+        stayOrReturn(1, checkAllAccounts, u);
+        return;
+    }
+    char name[50];
     ;
     struct Record r;
 
@@ -268,9 +308,9 @@ void checkAllAccounts(struct User u)
 
     system("clear");
     printf("\t\t====== All accounts from user, %s =====\n\n", u.name);
-    while (getAccountFromFile(pf, &userId, &r))
+    while (getAccountFromFile(pf, name, &r))
     {
-        if (userId == u.id)
+        if (strcmp(name, u.name) == 0)
         {
             printf("_____________________\n");
             printf("\nAccount number:%d\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%d \nAmount deposited: $%.2f \nType Of Account:%s\n",
