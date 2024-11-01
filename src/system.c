@@ -133,6 +133,47 @@ invalid:
     }
 }
 
+char *processInterest(struct Record r)
+{
+    static char interestMessage[1000];
+    float interestRate = 0.0;
+    float interestAmount;
+
+    if (strcmp(r.accountType, "saving") == 0)
+    {
+        interestRate = 0.07;
+    }
+    else if (strcmp(r.accountType, "fixed01") == 0)
+    {
+        interestRate = 0.04;
+    }
+    else if (strcmp(r.accountType, "fixed02") == 0)
+    {
+        interestRate = 0.05;
+    }
+    else if (strcmp(r.accountType, "fixed03") == 0)
+    {
+        interestRate = 0.08;
+    }
+    else if (strcmp(r.accountType, "current") == 0)
+    {
+        snprintf(interestMessage, sizeof(interestMessage),
+                 "You will not get interests because the account is of type current");
+        return interestMessage;
+    }
+
+    // Calculate interest if applicable
+    if (interestRate > 0.0)
+    {
+        interestAmount = r.amount * interestRate / 12;
+        snprintf(interestMessage, sizeof(interestMessage),
+                 "You will get $%.2f as interest on day %d of every month",
+                 interestAmount, r.deposit.day);
+    }
+
+    return interestMessage;
+}
+
 void createNewAcc(struct User u)
 {
     struct Record r;
@@ -245,7 +286,7 @@ void updateAccInfo(struct User u)
         printf("\nWhich information do you want to update?\n");
         printf("\t\t[1]-> phone number\n");
         printf("\t\t[2]-> country\n");
-        printf("\t\tEnter option 1 or 2\n");
+        printf("\t\tEnter your choice:");
         scanf("%d", &option);
 
         switch (option)
@@ -281,6 +322,59 @@ void updateAccInfo(struct User u)
         updateAccountInFile(pf, records[i]);
     }
 
+    fclose(pf);
+    success(u);
+}
+
+void checkAccount(struct User u)
+{
+    if (!userHasAtLeastOneAccount(u))
+    {
+        system("clear");
+        printf("\t\t====== It seems like you do not have any accounts, %s =====\n\n", u.name);
+        printf("\t\t====== Consider creating one to be able to perform this operation, %s =====\n\n", u.name);
+        stayOrReturn(1, checkAllAccounts, u);
+        return;
+    }
+
+    int accountNbr;
+    system("clear");
+    printf("\t\t====== Check Account, %s =====\n\n", u.name);
+    printf("\nEnter the account number:");
+    scanf("%d", &accountNbr);
+
+    char name[50];
+    ;
+    struct Record r;
+
+    FILE *pf = fopen(RECORDS, "r+");
+    if (pf == NULL)
+    {
+        perror("\n\t\tFailed to open file");
+        return;
+    }
+
+    while (getAccountFromFile(pf, name, &r))
+    {
+        if (strcmp(name, u.name) == 0 && accountNbr == r.accountNbr)
+        {
+            char *interestMessage = processInterest(r);
+
+            printf("_____________________\n");
+            printf("\nAccount number:%d\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%d \nAmount deposited: $%.2f \nType Of Account:%s\n",
+                   r.accountNbr,
+                   r.deposit.day,
+                   r.deposit.month,
+                   r.deposit.year,
+                   r.country,
+                   r.phone,
+                   r.amount,
+                   r.accountType);
+            printf("%s\n", interestMessage);
+            fclose(pf);
+            return;
+        }
+    }
     fclose(pf);
     success(u);
 }
@@ -325,5 +419,112 @@ void checkAllAccounts(struct User u)
         }
     }
     fclose(pf);
+    success(u);
+}
+
+void makeTransaction(struct User u)
+{
+    if (!userHasAtLeastOneAccount(u))
+    {
+        system("clear");
+        printf("\t\t\t===== Make a Transaction =====\n");
+        printf("\t\t====== It seems like you do not have any accounts, %s =====\n\n", u.name);
+        printf("\t\t====== Consider creating one to be able to perform this operation, %s =====\n\n", u.name);
+        stayOrReturn(1, makeTransaction, u);
+        return;
+    }
+
+    struct Record r;
+    struct Record records[100];
+    int noOfRecords = 0;
+    int accountExists = 0;
+    int targetAccountNbr = 0;
+    int recordToUpdateIndex = 0;
+
+    system("clear");
+    printf("\t\t\t===== Make a Transaction =====\n");
+    printf("\nEnter the Account Number:");
+    scanf("%d", &targetAccountNbr);
+
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        perror("\n\t\tFailed to open file");
+        return;
+    }
+    while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
+    {
+        if (records[noOfRecords].accountNbr == targetAccountNbr && strcmp(records[noOfRecords].name, u.name) == 0)
+        {
+            r = records[noOfRecords];
+            accountExists = 1;
+            recordToUpdateIndex = noOfRecords;
+        }
+        noOfRecords++;
+    }
+    fclose(pf);
+
+    if (accountExists)
+    {
+        if (strcmp(r.accountType, "fixed01") == 0 || strcmp(r.accountType, "fixed02") == 0 || strcmp(r.accountType, "fixed03") == 0)
+        {
+            printf("\nYou cannot withdraw or deposit from a %s account", r.accountType);
+            stayOrReturn(1, makeTransaction, u);
+            return;
+        }
+
+        int option;
+        printf("\nDo you want to:\n");
+        printf("\t\t[1]-> Deposit\n");
+        printf("\t\t[2]-> Withdraw\n");
+        printf("\t\tEnter your choice:");
+        scanf("%d", &option);
+
+        switch (option)
+        {
+        case 1:
+            int depositAmount;
+            printf("\nEnter the amount you want to deposit:");
+            scanf("%d", &depositAmount);
+            records[recordToUpdateIndex].amount = r.amount + depositAmount;
+            printf("\nYou successfully deposited %d to account number: %d", depositAmount, r.accountNbr);
+            break;
+        case 2:
+            int withdrawAmount;
+            printf("\nEnter the amount you want to withdraw:");
+            scanf("%d", &withdrawAmount);
+            if (withdrawAmount > r.amount)
+            {
+                printf("\nFail. The withdraw amount is superior to your balance:");
+                stayOrReturn(1, makeTransaction, u);
+                return;
+            }
+            records[recordToUpdateIndex].amount = r.amount - withdrawAmount;
+            printf("\nYou successfully withdrew %d from account number: %d", withdrawAmount, r.accountNbr);
+            break;
+        default:
+            stayOrReturn(1, makeTransaction, u);
+            return;
+        }
+    }
+    else
+    {
+        printf("\nThat account does not exist. Please try again.\n");
+        stayOrReturn(1, makeTransaction, u);
+        return;
+    }
+
+    pf = fopen(RECORDS, "w");
+    if (pf == NULL)
+    {
+        perror("\n\t\tFailed to open file");
+        return;
+    }
+    for (int i = 0; i < noOfRecords; i++)
+    {
+        updateAccountInFile(pf, records[i]);
+    }
+    fclose(pf);
+
     success(u);
 }
