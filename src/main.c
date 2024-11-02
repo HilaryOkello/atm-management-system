@@ -99,6 +99,7 @@ void initMenu(struct User *u)
             break;
         default:
             printf("Insert a valid operation!\n");
+            break;
         }
     }
 };

@@ -142,18 +142,34 @@ char *processInterest(struct Record r)
     if (strcmp(r.accountType, "saving") == 0)
     {
         interestRate = 0.07;
+        interestAmount = r.amount * interestRate / 12;
+        snprintf(interestMessage, sizeof(interestMessage),
+                 "You will get $%.2f as interest on day %d of every month",
+                 interestAmount, r.deposit.day);
     }
     else if (strcmp(r.accountType, "fixed01") == 0)
     {
         interestRate = 0.04;
+        interestAmount = r.amount * interestRate;
+        snprintf(interestMessage, sizeof(interestMessage),
+                 "You will get $%.2f as interest on %d/%d/%d",
+                 interestAmount, r.deposit.month, r.deposit.day, r.deposit.year + 1);
     }
     else if (strcmp(r.accountType, "fixed02") == 0)
     {
         interestRate = 0.05;
+        interestAmount = r.amount * interestRate * 2;
+        snprintf(interestMessage, sizeof(interestMessage),
+                 "You will get $%.2f as interest on %d/%d/%d",
+                 interestAmount, r.deposit.month, r.deposit.day, r.deposit.year + 2);
     }
     else if (strcmp(r.accountType, "fixed03") == 0)
     {
         interestRate = 0.08;
+        interestAmount = r.amount * interestRate * 3;
+        snprintf(interestMessage, sizeof(interestMessage),
+                 "You will get $%.2f as interest on %d/%d/%d",
+                 interestAmount, r.deposit.month, r.deposit.day, r.deposit.year + 3);
     }
     else if (strcmp(r.accountType, "current") == 0)
     {
@@ -161,14 +177,11 @@ char *processInterest(struct Record r)
                  "You will not get interests because the account is of type current");
         return interestMessage;
     }
-
-    // Calculate interest if applicable
-    if (interestRate > 0.0)
+    else
     {
-        interestAmount = r.amount * interestRate / 12;
+        // Handle unexpected account types
         snprintf(interestMessage, sizeof(interestMessage),
-                 "You will get $%.2f as interest on day %d of every month",
-                 interestAmount, r.deposit.day);
+                 "Invalid account type specified");
     }
 
     return interestMessage;
@@ -326,10 +339,15 @@ void updateAccInfo(struct User u)
             stayOrReturn(1, updateAccInfo, u);
             break;
         default:
-            printf("\nInvalid option. Returning to main menu.\n");
-            mainMenu(u);
+            stayOrReturn(1, updateAccInfo, u);
             return;
         }
+    }
+    else
+    {
+        printf("Account number %d was not found.", targetAccountNbr);
+        stayOrReturn(1, updateAccInfo, u);
+        return;
     }
 
     pf = fopen(RECORDS, "w");
@@ -359,6 +377,7 @@ void checkAccount(struct User u)
     }
 
     int accountNbr;
+    int accountFound = 0;
     system("clear");
     printf("\t\t====== Check Account, %s =====\n\n", u.name);
     printf("\nEnter the account number:");
@@ -393,8 +412,15 @@ void checkAccount(struct User u)
                    r.accountType);
             printf("%s\n", interestMessage);
             fclose(pf);
-            return;
+            accountFound = 1;
         }
+    }
+
+    if (!accountFound)
+    {
+        printf("Account number %d was not found.", accountNbr);
+        stayOrReturn(1, updateAccInfo, u);
+        return;
     }
     fclose(pf);
     success(u);
@@ -530,7 +556,7 @@ void makeTransaction(struct User u)
     }
     else
     {
-        printf("\nThat account does not exist. Please try again.\n");
+        printf("\nThat account does not exist.\n");
         stayOrReturn(1, makeTransaction, u);
         return;
     }
@@ -628,6 +654,12 @@ void removeAccount(struct User u)
             return;
         }
     }
+    else
+    {
+        printf("\nThat account does not exist.\n");
+        stayOrReturn(1, removeAccount, u);
+        return;
+    }
 
     pf = fopen(RECORDS, "w");
     if (pf == NULL)
@@ -721,12 +753,13 @@ void transferAccount(struct User u)
                 receiverFound = 1;
                 records[recordToUpdateIndex].userId = receiver.id;
                 strcpy(records[recordToUpdateIndex].name, receiver.name);
-                printf("\nTransfering account number %d to %s", targetAccountNbr,receiverUsername);
+                printf("\nTransfering account number %d to %s", targetAccountNbr, receiverUsername);
             }
         }
-        fclose(fp);
+
         if (!receiverFound)
         {
+            fclose(fp);
             printf("\nUser %s not found.", receiverUsername);
             stayOrReturn(1, transferAccount, u);
             return;
