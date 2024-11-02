@@ -495,6 +495,7 @@ void updateAccInfo(struct User u)
     printf("\nWhich information do you want to update?\n");
     printf("\t\t[1]-> phone number\n");
     printf("\t\t[2]-> country\n");
+    printf("\t\t[3]-> Option to go back to main menu\n");
     // Option Validation
     char optionInput[2];
     while (true)
@@ -508,7 +509,7 @@ void updateAccInfo(struct User u)
         }
         else
         {
-            printf("✖ Invalid option number. It must 1 or 2.\n");
+            printf("✖ Invalid option number. It must 1 or 2 or 3.\n");
         }
     }
 
@@ -726,7 +727,7 @@ void makeTransaction(struct User u)
     printf("\nDo you want to:\n");
     printf("\t\t[1]-> Deposit\n");
     printf("\t\t[2]-> Withdraw\n");
-    
+    printf("\t\t[3]-> Option to go back to main menu\n");
 
     // Option Validation
     char optionInput[2];
@@ -741,7 +742,7 @@ void makeTransaction(struct User u)
         }
         else
         {
-            printf("✖ Invalid option number. It must 1 or 2.\n");
+            printf("✖ Invalid option number. It must 1 or 2 or 3.\n");
         }
     }
 
@@ -795,6 +796,9 @@ void makeTransaction(struct User u)
         records[recordToUpdateIndex].amount = r.amount - withdrawAmount;
         printf("\nWithdrawing %d from account number: %d", withdrawAmount, r.accountNbr);
         break;
+    case 3:
+        stayOrReturn(1, makeTransaction, u);
+        return;
     default:
         stayOrReturn(1, makeTransaction, u);
         return;
@@ -880,6 +884,8 @@ void removeAccount(struct User u)
     printf("\nAre you sure you want to remove this account?\n");
     printf("\t\t[1]-> Yes\n");
     printf("\t\t[2]-> No\n");
+    printf("\t\t[3]-> Option to go back to main menu\n");
+
     // Option Validation
     char optionInput[2];
     while (true)
@@ -907,6 +913,9 @@ void removeAccount(struct User u)
         break;
     case 2:
         stayOrReturn(1, removeAccount, u);
+        return;
+    case 3:
+        stayOrReturn(1, makeTransaction, u);
         return;
     default:
         stayOrReturn(1, removeAccount, u);
