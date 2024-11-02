@@ -174,6 +174,22 @@ char *processInterest(struct Record r)
     return interestMessage;
 }
 
+void removeRecordAtIndex(struct Record records[], int *size, int index)
+{
+    if (index < 0 || index >= *size)
+    {
+        printf("Record does not exist. Index out of bounds.\n");
+        return;
+    }
+
+    for (int i = index; i < *size - 1; i++)
+    {
+        records[i] = records[i + 1];
+    }
+
+    (*size)--;
+}
+
 void createNewAcc(struct User u)
 {
     struct Record r;
@@ -253,7 +269,7 @@ void updateAccInfo(struct User u)
 
     system("clear");
     printf("\t\t\t===== Update Account Information =====\n");
-    printf("\nEnter the Account Number you want to update:\n");
+    printf("\nEnter the Account Number you want to update:");
     scanf("%d", &targetAccountNbr);
 
     FILE *pf = fopen(RECORDS, "r");
@@ -264,7 +280,7 @@ void updateAccInfo(struct User u)
     }
     while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
     {
-        if (records[noOfRecords].accountNbr == targetAccountNbr && records[noOfRecords].name == u.name)
+        if (records[noOfRecords].accountNbr == targetAccountNbr && strcmp(records[noOfRecords].name, u.name) == 0)
         {
             r = records[noOfRecords];
             accountExists = 1;
@@ -492,7 +508,7 @@ void makeTransaction(struct User u)
             printf("\nEnter the amount you want to deposit:");
             scanf("%d", &depositAmount);
             records[recordToUpdateIndex].amount = r.amount + depositAmount;
-            printf("\nYou successfully deposited %d to account number: %d", depositAmount, r.accountNbr);
+            printf("\nDepositing %d to account number: %d", depositAmount, r.accountNbr);
             break;
         case 2:
             int withdrawAmount;
@@ -505,7 +521,7 @@ void makeTransaction(struct User u)
                 return;
             }
             records[recordToUpdateIndex].amount = r.amount - withdrawAmount;
-            printf("\nYou successfully withdrew %d from account number: %d", withdrawAmount, r.accountNbr);
+            printf("\nWithdrawing %d from account number: %d", withdrawAmount, r.accountNbr);
             break;
         default:
             stayOrReturn(1, makeTransaction, u);
@@ -531,5 +547,100 @@ void makeTransaction(struct User u)
     }
     fclose(pf);
 
+    success(u);
+}
+
+void removeAccount(struct User u)
+{
+    if (!userHasAtLeastOneAccount(u))
+    {
+        system("clear");
+        printf("\t\t\t===== Remove an Account =====\n");
+        printf("\t\t====== It seems like you do not have any accounts, %s =====\n\n", u.name);
+        printf("\t\t====== Consider creating one to be able to perform this operation, %s =====\n\n", u.name);
+        stayOrReturn(1, updateAccInfo, u);
+        return;
+    }
+
+    struct Record r;
+    struct Record records[100];
+    int noOfRecords = 0;
+    int accountExists = 0;
+    int targetAccountNbr = 0;
+    int recordToRemoveIndex = 0;
+
+    system("clear");
+    printf("\t\t\t===== Remove an Account =====\n");
+    printf("\nEnter the Account Number of the account you want to remove:");
+    scanf("%d", &targetAccountNbr);
+
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        perror("\n\t\tFailed to open file");
+        return;
+    }
+    while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
+    {
+        if (records[noOfRecords].accountNbr == targetAccountNbr && strcmp(records[noOfRecords].name, u.name) == 0)
+        {
+            r = records[noOfRecords];
+            accountExists = 1;
+            recordToRemoveIndex = noOfRecords;
+        }
+        noOfRecords++;
+    }
+    fclose(pf);
+
+    if (accountExists)
+    {
+        printf("_____________________\n");
+        printf("\nAccount number:%d\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%d \nAmount deposited: $%.2f \nType Of Account:%s\n",
+               r.accountNbr,
+               r.deposit.day,
+               r.deposit.month,
+               r.deposit.year,
+               r.country,
+               r.phone,
+               r.amount,
+               r.accountType);
+
+        int option;
+        printf("\nAre you sure you want to remove this account?\n");
+        printf("\t\t[1]-> Yes\n");
+        printf("\t\t[2]-> No\n");
+        printf("\t\tEnter your choice:");
+        scanf("%d", &option);
+
+        switch (option)
+        {
+        case 1:
+            int size = sizeof(records) / sizeof(records[0]);
+            removeRecordAtIndex(records, &size, recordToRemoveIndex);
+            noOfRecords--;
+            printf("\nRemoving account number: %d\n", r.accountNbr);
+            break;
+        case 2:
+            stayOrReturn(1, removeAccount, u);
+            return;
+        default:
+            stayOrReturn(1, removeAccount, u);
+            return;
+        }
+    }
+
+    pf = fopen(RECORDS, "w");
+    if (pf == NULL)
+    {
+        perror("\n\t\tFailed to open file");
+        return;
+    }
+    for (int i = 0; i < noOfRecords; i++)
+    {
+        updateAccountInFile(pf, records[i]);
+    }
+
+
+    fclose(pf);
     success(u);
 }

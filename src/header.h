@@ -41,3 +41,4 @@ void mainMenu(struct User u);
 void checkAllAccounts(struct User u);
 void checkAccount(struct User u);
 void makeTransaction(struct User u);
+void removeAccount(struct User u);
