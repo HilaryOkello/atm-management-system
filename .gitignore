@@ -2,3 +2,5 @@
 *~
 # Ignore all object files
 *.o
+#VSCode
+.vdcode
