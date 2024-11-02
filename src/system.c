@@ -181,6 +181,11 @@ void createNewAcc(struct User u)
     char name[50];
     int maxId = -1;
     FILE *pf = fopen(RECORDS, "a+");
+    if (pf == NULL)
+    {
+        printf("Error opening file!\n");
+        exit(1);
+    }
 
     while (getAccountFromFile(pf, name, &cr))
     {
