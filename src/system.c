@@ -640,6 +640,109 @@ void removeAccount(struct User u)
         updateAccountInFile(pf, records[i]);
     }
 
+    fclose(pf);
+    success(u);
+}
+
+void transferAccount(struct User u)
+{
+    if (!userHasAtLeastOneAccount(u))
+    {
+        system("clear");
+        printf("\t\t\t===== Transfer Account =====\n");
+        printf("\t\t====== It seems like you do not have any accounts, %s =====\n\n", u.name);
+        printf("\t\t====== Consider creating one to be able to perform this operation, %s =====\n\n", u.name);
+        stayOrReturn(1, updateAccInfo, u);
+        return;
+    }
+
+    struct Record r;
+    struct Record records[100];
+    int noOfRecords = 0;
+    int accountExists = 0;
+    int targetAccountNbr = 0;
+    char receiverUsername[50];
+    int receiverFound = 0;
+    int recordToUpdateIndex = 0;
+
+    system("clear");
+    printf("\t\t\t===== Transfer Account =====\n");
+    printf("\nEnter the Account Number of the account you want to transfer:");
+    scanf("%d", &targetAccountNbr);
+
+    FILE *pf = fopen(RECORDS, "r");
+    if (pf == NULL)
+    {
+        perror("\n\t\tFailed to open file");
+        return;
+    }
+    while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
+    {
+        if (records[noOfRecords].accountNbr == targetAccountNbr && strcmp(records[noOfRecords].name, u.name) == 0)
+        {
+            r = records[noOfRecords];
+            accountExists = 1;
+            recordToUpdateIndex = noOfRecords;
+        }
+        noOfRecords++;
+    }
+    fclose(pf);
+
+    if (accountExists)
+    {
+        printf("_____________________\n");
+        printf("\nAccount number:%d\nDeposit Date:%d/%d/%d \ncountry:%s \nPhone number:%d \nAmount deposited: $%.2f \nType Of Account:%s\n",
+               r.accountNbr,
+               r.deposit.day,
+               r.deposit.month,
+               r.deposit.year,
+               r.country,
+               r.phone,
+               r.amount,
+               r.accountType);
+
+        int option;
+        printf("\nEnter the username of the person you are transfering the account to:");
+        scanf("%s", receiverUsername);
+
+        FILE *fp;
+        struct User receiver;
+        fp = fopen("./data/users.txt", "a+");
+        if (fp == NULL)
+        {
+            printf("Error opening file!\n");
+            exit(1);
+        }
+        while (fscanf(fp, "%d %s %s", &receiver.id, receiver.name, receiver.password) != EOF)
+        {
+            if (strcmp(receiver.name, receiverUsername) == 0)
+            {
+                fclose(fp);
+                receiverFound = 1;
+                records[recordToUpdateIndex].userId = receiver.id;
+                strcpy(records[recordToUpdateIndex].name, receiver.name);
+                printf("\nTransfering account number %d to %s", targetAccountNbr,receiverUsername);
+            }
+        }
+        fclose(fp);
+        if (!receiverFound)
+        {
+            printf("\nUser %s not found.", receiverUsername);
+            stayOrReturn(1, transferAccount, u);
+            return;
+        }
+    }
+
+    pf = fopen(RECORDS, "w");
+    if (pf == NULL)
+    {
+        perror("\n\t\tFailed to open file");
+        return;
+    }
+    for (int i = 0; i < noOfRecords; i++)
+    {
+        updateAccountInFile(pf, records[i]);
+    }
 
     fclose(pf);
     success(u);
