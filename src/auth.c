@@ -56,7 +56,7 @@ void loginMenu(char a[50], char pass[50])
 
     system("clear");
     printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login:");
-    scanf("%s", a);
+    scanf("%49s", a);
 
     // disabling echo
     tcgetattr(fileno(stdin), &oflags);
@@ -70,7 +70,7 @@ void loginMenu(char a[50], char pass[50])
         return exit(1);
     }
     printf("\n\n\n\n\n\t\t\t\tEnter the password to login:");
-    scanf("%s", pass);
+    scanf("%49s", pass);
 
     // restore terminal
     if (tcsetattr(fileno(stdin), TCSANOW, &oflags) != 0)

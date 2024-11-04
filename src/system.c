@@ -7,6 +7,7 @@ const char *RECORDS = "./data/records.txt";
 #define MAX_AMOUNT_SIZE 20
 #define MAX_PHONE_SIZE 20
 #define MAX_ACC_TYPE_SIZE 10
+#define MAX_AMOUNT 100000
 
 int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 {
@@ -97,7 +98,7 @@ void stayOrReturn(int notGood, void f(struct User u), struct User u)
             exit(0);
         else
         {
-            printf("Insert a valid operation!\n");
+            printf(COLOR_RED "Insert a valid operation!\n" COLOR_RESET);
             goto invalid;
         }
     }
@@ -121,7 +122,7 @@ void stayOrReturn(int notGood, void f(struct User u), struct User u)
 void success(struct User u)
 {
     int option;
-    printf("\n✔ Success!\n\n");
+    printf(COLOR_GREEN "\n✔ Success!\n\n" COLOR_RESET);
 invalid:
     printf("Enter 1 to go to the main menu and 0 to exit!\n");
     scanf("%d", &option);
@@ -136,7 +137,7 @@ invalid:
     }
     else
     {
-        printf("Insert a valid operation!\n");
+        printf(COLOR_RED "Insert a valid operation!\n" COLOR_RESET);
         goto invalid;
     }
 }
@@ -260,6 +261,36 @@ bool isNumericAndPositive(const char *str)
     return true;
 }
 
+// Validate amount is numeric
+bool amountValidation(const char *str)
+{
+    if (*str == '\0' || *str == '-' || *str == '.')
+        return false;
+
+    bool decimalPointSeen = false;
+
+    while (*str)
+    {
+        if (*str == '.')
+        {
+            if (decimalPointSeen)
+                return false;
+            decimalPointSeen = true;
+        }
+        else if (!isdigit((unsigned char)*str))
+        {
+            return false;
+        }
+        str++;
+    }
+
+    // Ensure the string does not end with a decimal point
+    if (*(str - 1) == '.')
+        return false;
+
+    return true;
+}
+
 // Validate the date format MM/DD/YYYY
 bool isValidDate(const char *date)
 {
@@ -297,6 +328,7 @@ bool isValidAccountType(const char *type)
             strcmp(type, "fixed03") == 0);
 }
 
+// Creates a new account for user and updates the records file
 void createNewAcc(struct User u)
 {
     struct Record r;
@@ -306,7 +338,7 @@ void createNewAcc(struct User u)
     FILE *pf = fopen(RECORDS, "a+");
     if (pf == NULL)
     {
-        printf("Error opening file!\n");
+        printf(COLOR_RED "Error opening file!\n" COLOR_RESET);
         exit(1);
     }
 
@@ -323,7 +355,7 @@ void createNewAcc(struct User u)
 
 noAccount:
     system("clear");
-    printf("\t\t\t===== New record =====\n");
+    printf("%s\t\t\t===== New record =====%s\n", COLOR_GREEN, COLOR_RESET);
 
     // Input and Validation
 
@@ -340,7 +372,7 @@ noAccount:
         }
         else
         {
-            printf("✖ Invalid date format. Please use MM/DD/YYYY.\n");
+            printf(COLOR_RED "✖ Invalid date format. Please use MM/DD/YYYY.\n" COLOR_RESET);
         }
     }
     // Acc Number and Validation
@@ -356,7 +388,7 @@ noAccount:
         }
         else
         {
-            printf("✖ Invalid account number. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid account number. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
@@ -364,7 +396,7 @@ noAccount:
     {
         if (strcmp(name, u.name) == 0 && cr.accountNbr == r.accountNbr)
         {
-            printf("✖ This Account already exists for this user\n\n");
+            printf(COLOR_RED "✖ This Account already exists for this user\n\n" COLOR_RESET);
             goto noAccount;
         }
     }
@@ -385,7 +417,7 @@ noAccount:
         }
         else
         {
-            printf("✖ Invalid phone number. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid phone number. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
@@ -395,14 +427,21 @@ noAccount:
     {
         printf("\nEnter amount to deposit: $");
         scanf("%19s", amountInput);
-        if (isNumericAndPositive(amountInput))
+        if (amountValidation(amountInput))
         {
             r.amount = atof(amountInput);
-            break;
+            if (r.amount > MAX_AMOUNT)
+            {
+                printf(COLOR_RED "Maximum transaction limit (%d) breached.\n" COLOR_RESET, MAX_AMOUNT);
+            }
+            else
+            {
+                break;
+            }
         }
         else
         {
-            printf("✖ Invalid amount. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid amount. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
@@ -419,7 +458,7 @@ noAccount:
         }
         else
         {
-            printf("✖ Invalid account type. Please select a valid option.\n");
+            printf(COLOR_RED "✖ Invalid account type. Please select a valid option.\n" COLOR_RESET);
         }
     }
     saveAccountToFile(pf, u, r);
@@ -428,10 +467,11 @@ noAccount:
     success(u);
 }
 
+// Creates a new account for user and updates the records file
 void updateAccInfo(struct User u)
 {
     system("clear");
-    printf("\t\t\t===== Update Account Information =====\n");
+    printf("%s\t\t\t===== Update Account Information =====%s\n", COLOR_GREEN, COLOR_RESET);
     if (!userHasAtLeastOneAccount(u))
     {
         stayOrReturn(1, updateAccInfo, u);
@@ -460,14 +500,14 @@ void updateAccInfo(struct User u)
         }
         else
         {
-            printf("✖ Invalid account number. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid account number. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
     FILE *pf = fopen(RECORDS, "r");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
@@ -484,7 +524,7 @@ void updateAccInfo(struct User u)
 
     if (!accountExists)
     {
-        printf("Account number %d was not found.", targetAccountNbr);
+        printf(COLOR_YELLOW "Account number %d not found." COLOR_RESET, targetAccountNbr);
         stayOrReturn(1, updateAccInfo, u);
         return;
     }
@@ -509,7 +549,7 @@ void updateAccInfo(struct User u)
         }
         else
         {
-            printf("✖ Invalid option number. It must 1 or 2 or 3.\n");
+            printf(COLOR_RED "✖ Invalid option number. It must 1 or 2 or 3.\n" COLOR_RESET);
         }
     }
 
@@ -529,7 +569,7 @@ void updateAccInfo(struct User u)
             }
             else
             {
-                printf("✖ Invalid phone number. It must be a positive number.\n");
+                printf(COLOR_RED "✖ Invalid phone number. It must be a positive number.\n" COLOR_RESET);
             }
         }
         records[recordToUpdateIndex].phone = phoneNumber;
@@ -550,7 +590,7 @@ void updateAccInfo(struct User u)
     pf = fopen(RECORDS, "w");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     for (int i = 0; i < noOfRecords; i++)
@@ -562,10 +602,11 @@ void updateAccInfo(struct User u)
     success(u);
 }
 
+// Lists details of a users account number
 void checkAccount(struct User u)
 {
     system("clear");
-    printf("\t\t====== Check Account, %s =====\n\n", u.name);
+    printf("%s\t\t====== Check Account, %s =====%s\n\n", COLOR_GREEN, u.name, COLOR_RESET);
     if (!userHasAtLeastOneAccount(u))
     {
         stayOrReturn(1, checkAllAccounts, u);
@@ -588,7 +629,7 @@ void checkAccount(struct User u)
         }
         else
         {
-            printf("✖ Invalid account number. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid account number. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
@@ -599,7 +640,7 @@ void checkAccount(struct User u)
     FILE *pf = fopen(RECORDS, "r+");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
 
@@ -618,7 +659,7 @@ void checkAccount(struct User u)
     if (!accountFound)
     {
         fclose(pf);
-        printf("Account number %d was not found.", accountNbr);
+        printf(COLOR_YELLOW "Account number %d not found." COLOR_RESET, accountNbr);
         stayOrReturn(1, updateAccInfo, u);
         return;
     }
@@ -626,10 +667,11 @@ void checkAccount(struct User u)
     success(u);
 }
 
+// Lists all accounts belonging to a user
 void checkAllAccounts(struct User u)
 {
     system("clear");
-    printf("\t\t====== All accounts from user, %s =====\n\n", u.name);
+    printf("%s\t\t====== All Accounts from User, %s =====%s\n\n", COLOR_GREEN, u.name, COLOR_RESET);
     if (!userHasAtLeastOneAccount(u))
     {
         stayOrReturn(1, checkAllAccounts, u);
@@ -642,7 +684,7 @@ void checkAllAccounts(struct User u)
     FILE *pf = fopen(RECORDS, "r+");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
 
@@ -657,10 +699,11 @@ void checkAllAccounts(struct User u)
     success(u);
 }
 
+// Makes deposit and withdraw transactions on a user's account and updates the records file
 void makeTransaction(struct User u)
 {
     system("clear");
-    printf("\t\t\t===== Make a Transaction =====\n");
+    printf("%s\t\t====== Make a Transaction, %s =====%s\n\n", COLOR_GREEN, u.name, COLOR_RESET);
     if (!userHasAtLeastOneAccount(u))
     {
         stayOrReturn(1, makeTransaction, u);
@@ -687,14 +730,14 @@ void makeTransaction(struct User u)
         }
         else
         {
-            printf("✖ Invalid account number. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid account number. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
     FILE *pf = fopen(RECORDS, "r");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
@@ -711,14 +754,14 @@ void makeTransaction(struct User u)
 
     if (!accountExists)
     {
-        printf("\nThat account does not exist.\n");
+        printf(COLOR_YELLOW "Account number %d not found." COLOR_RESET, targetAccountNbr);
         stayOrReturn(1, makeTransaction, u);
         return;
     }
 
     if (strcmp(r.accountType, "fixed01") == 0 || strcmp(r.accountType, "fixed02") == 0 || strcmp(r.accountType, "fixed03") == 0)
     {
-        printf("\nYou cannot withdraw or deposit from a %s account", r.accountType);
+        printf(COLOR_RED "\nYou cannot withdraw or deposit from a %s account" COLOR_RESET, r.accountType);
         stayOrReturn(1, makeTransaction, u);
         return;
     }
@@ -742,7 +785,7 @@ void makeTransaction(struct User u)
         }
         else
         {
-            printf("✖ Invalid option number. It must 1 or 2 or 3.\n");
+            printf(COLOR_RED "✖ Invalid option number. It must 1 or 2 or 3.\n" COLOR_RESET);
         }
     }
 
@@ -757,18 +800,25 @@ void makeTransaction(struct User u)
         {
             printf("\nEnter amount to deposit: $");
             scanf("%19s", amountInput);
-            if (isNumericAndPositive(amountInput))
+            if (amountValidation(amountInput))
             {
                 depositAmount = atof(amountInput);
-                break;
+                if (depositAmount > MAX_AMOUNT)
+                {
+                    printf(COLOR_RED "Maximum transaction limit (%d) breached.\n" COLOR_RESET, MAX_AMOUNT);
+                }
+                else
+                {
+                    break;
+                }
             }
             else
             {
-                printf("✖ Invalid amount. It must be a positive number.\n");
+                printf(COLOR_RED "✖ Invalid amount. It must be a positive number.\n" COLOR_RESET);
             }
         }
         records[recordToUpdateIndex].amount = r.amount + depositAmount;
-        printf("\nDepositing %d to account number: %d", depositAmount, r.accountNbr);
+        printf(COLOR_YELLOW "\nDepositing %d to account number: %d" COLOR_RESET, depositAmount, r.accountNbr);
         break;
     case 2:
         int withdrawAmount;
@@ -777,24 +827,31 @@ void makeTransaction(struct User u)
         {
             printf("\nEnter amount to deposit: $");
             scanf("%19s", amountInput);
-            if (isNumericAndPositive(amountInput))
+            if (amountValidation(amountInput))
             {
                 withdrawAmount = atof(amountInput);
-                break;
+                if (withdrawAmount > MAX_AMOUNT)
+                {
+                    printf(COLOR_RED "Maximum transaction limit (%d) breached.\n" COLOR_RESET, MAX_AMOUNT);
+                }
+                else
+                {
+                    break;
+                }
             }
             else
             {
-                printf("✖ Invalid amount. It must be a positive number.\n");
+                printf(COLOR_RED "✖ Invalid amount. It must be a positive number.\n" COLOR_RESET);
             }
         }
         if (withdrawAmount > r.amount)
         {
-            printf("\nFail. The withdraw amount is superior to your balance:");
+            printf(COLOR_RED "\nFail. The withdraw amount is superior to your balance:" COLOR_RESET);
             stayOrReturn(1, makeTransaction, u);
             return;
         }
         records[recordToUpdateIndex].amount = r.amount - withdrawAmount;
-        printf("\nWithdrawing %d from account number: %d", withdrawAmount, r.accountNbr);
+        printf(COLOR_YELLOW "\nWithdrawing %d from account number: %d" COLOR_RESET, withdrawAmount, r.accountNbr);
         break;
     case 3:
         stayOrReturn(1, makeTransaction, u);
@@ -807,7 +864,7 @@ void makeTransaction(struct User u)
     pf = fopen(RECORDS, "w");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     for (int i = 0; i < noOfRecords; i++)
@@ -819,10 +876,11 @@ void makeTransaction(struct User u)
     success(u);
 }
 
+// Removes a specific account number from the records file
 void removeAccount(struct User u)
 {
     system("clear");
-    printf("\t\t\t===== Remove an Account =====\n");
+    printf("%s\t\t====== Remove an Account, %s =====%s\n\n", COLOR_GREEN, u.name, COLOR_RESET);
     if (!userHasAtLeastOneAccount(u))
     {
         stayOrReturn(1, updateAccInfo, u);
@@ -849,14 +907,14 @@ void removeAccount(struct User u)
         }
         else
         {
-            printf("✖ Invalid account number. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid account number. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
     FILE *pf = fopen(RECORDS, "r");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
@@ -873,7 +931,7 @@ void removeAccount(struct User u)
 
     if (!accountExists)
     {
-        printf("\nThat account does not exist.\n");
+        printf(COLOR_YELLOW "Account number %d not found." COLOR_RESET, targetAccountNbr);
         stayOrReturn(1, removeAccount, u);
         return;
     }
@@ -884,7 +942,6 @@ void removeAccount(struct User u)
     printf("\nAre you sure you want to remove this account?\n");
     printf("\t\t[1]-> Yes\n");
     printf("\t\t[2]-> No\n");
-    printf("\t\t[3]-> Option to go back to main menu\n");
 
     // Option Validation
     char optionInput[2];
@@ -899,7 +956,7 @@ void removeAccount(struct User u)
         }
         else
         {
-            printf("✖ Invalid option number. It must 1 or 2.\n");
+            printf(COLOR_RED "✖ Invalid option number. It must 1 or 2.\n" COLOR_RESET);
         }
     }
 
@@ -914,9 +971,6 @@ void removeAccount(struct User u)
     case 2:
         stayOrReturn(1, removeAccount, u);
         return;
-    case 3:
-        stayOrReturn(1, makeTransaction, u);
-        return;
     default:
         stayOrReturn(1, removeAccount, u);
         return;
@@ -925,7 +979,7 @@ void removeAccount(struct User u)
     pf = fopen(RECORDS, "w");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     for (int i = 0; i < noOfRecords; i++)
@@ -937,10 +991,11 @@ void removeAccount(struct User u)
     success(u);
 }
 
+// Transfers an acoount from one user to another and updates records
 void transferAccount(struct User u)
 {
     system("clear");
-    printf("\t\t\t===== Transfer Account =====\n");
+    printf("%s\t\t====== Transfer Account, %s =====%s\n\n", COLOR_GREEN, u.name, COLOR_RESET);
     if (!userHasAtLeastOneAccount(u))
     {
         stayOrReturn(1, updateAccInfo, u);
@@ -969,14 +1024,14 @@ void transferAccount(struct User u)
         }
         else
         {
-            printf("✖ Invalid account number. It must be a positive number.\n");
+            printf(COLOR_RED "✖ Invalid account number. It must be a positive number.\n" COLOR_RESET);
         }
     }
 
     FILE *pf = fopen(RECORDS, "r");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     while (getAccountFromFile(pf, records[noOfRecords].name, &records[noOfRecords]))
@@ -993,7 +1048,7 @@ void transferAccount(struct User u)
 
     if (!accountExists)
     {
-        printf("\nAccount number %d not found.", targetAccountNbr);
+        printf(COLOR_YELLOW "Account number %d not found." COLOR_RESET, targetAccountNbr);
         stayOrReturn(1, transferAccount, u);
         return;
     }
@@ -1018,21 +1073,21 @@ void transferAccount(struct User u)
             receiverFound = 1;
             records[recordToUpdateIndex].userId = receiver.id;
             strcpy(records[recordToUpdateIndex].name, receiver.name);
-            printf("\nTransfering account number %d to %s", targetAccountNbr, receiverUsername);
+            printf(COLOR_YELLOW "\nTransfering account number %d to %s" COLOR_RESET, targetAccountNbr, receiverUsername);
         }
     }
 
     if (!receiverFound)
     {
         fclose(fp);
-        printf("\nUser %s not found.", receiverUsername);
+        printf(COLOR_RED "\nUser %s not found." COLOR_RESET, receiverUsername);
         stayOrReturn(1, transferAccount, u);
         return;
     }
     pf = fopen(RECORDS, "w");
     if (pf == NULL)
     {
-        perror("\n\t\tFailed to open file");
+        perror(COLOR_RED "\n\t\tFailed to open file" COLOR_RESET);
         return;
     }
     for (int i = 0; i < noOfRecords; i++)
