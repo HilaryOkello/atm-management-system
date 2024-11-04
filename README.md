@@ -32,6 +32,10 @@ Use the provided Makefile to compile the project:
 ```bash
 make
 ```
+To delete the compiled files , you can run:
+```bash
+make clean
+```
 
 ### Run the Executable:
 

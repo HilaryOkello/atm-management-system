@@ -1,16 +1,29 @@
-objects = src/main.o src/system.o src/auth.o
+# Compiler and flags
+CC = cc
+CFLAGS = -Wall -Wextra
 
-atm : $(objects)
-	cc -o atm $(objects)
+# Source and object files
+SRC_DIR = src
+SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
+OBJ_FILES = $(SRC_FILES:.c=.o)
 
-main.o : src/header.h
-kbd.o : src/header.h
-command.o : src/header.h
-display.o : src/header.h
-insert.o : src/header.h
-search.o : src/header.h
-files.o : src/header.h
-utils.o : src/header.h
+# Executable name
+TARGET = atm
 
-clean :
-	rm -f $(objects)
+# Default target
+all: $(TARGET)
+
+# Build the executable
+$(TARGET): $(OBJ_FILES)
+	$(CC) -o $@ $^
+
+# Pattern rule for building object files from source files
+$(SRC_DIR)/%.o: $(SRC_DIR)/%.c src/header.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Phony target for cleaning up
+.PHONY: clean
+
+# Clean target
+clean:
+	rm -f $(OBJ_FILES) $(TARGET)
