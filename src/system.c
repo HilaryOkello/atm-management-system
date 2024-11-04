@@ -431,9 +431,9 @@ noAccount:
         if (amountValidation(amountInput))
         {
             r.amount = atof(amountInput);
-            if (r.amount > MAX_AMOUNT || r.amount <= MIN_AMOUNT)
+            if (r.amount > MAX_AMOUNT)
             {
-                printf(COLOR_RED "Minumun($%d) or Maximum($%d)transaction limit breached.\n" COLOR_RESET, MIN_AMOUNT, MAX_AMOUNT);
+                printf(COLOR_RED "Maximum($%d)transaction limit breached.\n" COLOR_RESET, MAX_AMOUNT);
             }
             else
             {
@@ -804,9 +804,9 @@ void makeTransaction(struct User u)
             if (amountValidation(amountInput))
             {
                 depositAmount = atof(amountInput);
-                if (depositAmount > MAX_AMOUNT)
+                if (depositAmount > MAX_AMOUNT || depositAmount <= MIN_AMOUNT)
                 {
-                    printf(COLOR_RED "Maximum transaction limit (%d) breached.\n" COLOR_RESET, MAX_AMOUNT);
+                    printf(COLOR_RED "Minimum(>%d) or Maximum(<=%d) transaction limit breached.\n" COLOR_RESET, MIN_AMOUNT, MAX_AMOUNT);
                 }
                 else
                 {
@@ -831,9 +831,9 @@ void makeTransaction(struct User u)
             if (amountValidation(amountInput))
             {
                 withdrawAmount = atof(amountInput);
-                if (withdrawAmount > MAX_AMOUNT)
+                if (withdrawAmount > MAX_AMOUNT || withdrawAmount <= MIN_AMOUNT)
                 {
-                    printf(COLOR_RED "Maximum transaction limit (%d) breached.\n" COLOR_RESET, MAX_AMOUNT);
+                    printf(COLOR_RED "Minimum(>%d) or Maximum(<=%d) transaction limit breached.\n" COLOR_RESET, MIN_AMOUNT, MAX_AMOUNT);
                 }
                 else
                 {
