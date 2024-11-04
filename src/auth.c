@@ -55,7 +55,7 @@ void loginMenu(char a[50], char pass[50])
     struct termios oflags, nflags;
 
     system("clear");
-    printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login:");
+    printf("\n\n\n\t\t\t\t   Bank Management System\n\t\t\t\t\t User Login\n\t\t\t\t\t Enter Username:");
     scanf("%49s", a);
 
     // disabling echo
