@@ -81,8 +81,9 @@ void initMenu(struct User *u)
             else
             {
                 printf(COLOR_RED "\nWrong password or username!\n" COLOR_RESET);
-                sleep(1);
-                exit(1);
+                sleep(2);
+                initMenu(u);
+                return;
             }
             break;
         case 2:

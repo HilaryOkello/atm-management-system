@@ -8,6 +8,7 @@ const char *RECORDS = "./data/records.txt";
 #define MAX_PHONE_SIZE 20
 #define MAX_ACC_TYPE_SIZE 10
 #define MAX_AMOUNT 100000
+#define MIN_AMOUNT 0
 
 int getAccountFromFile(FILE *ptr, char name[50], struct Record *r)
 {
@@ -430,9 +431,9 @@ noAccount:
         if (amountValidation(amountInput))
         {
             r.amount = atof(amountInput);
-            if (r.amount > MAX_AMOUNT)
+            if (r.amount > MAX_AMOUNT || r.amount <= MIN_AMOUNT)
             {
-                printf(COLOR_RED "Maximum transaction limit (%d) breached.\n" COLOR_RESET, MAX_AMOUNT);
+                printf(COLOR_RED "Minumun($%d) or Maximum($%d)transaction limit breached.\n" COLOR_RESET, MIN_AMOUNT, MAX_AMOUNT);
             }
             else
             {
