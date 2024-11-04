@@ -1,10 +1,11 @@
 #include "header.h"
 
+// Displays the main menu with options for user
 void mainMenu(struct User u)
 {
     int option;
     system("clear");
-    printf(COLOR_GREEN"\n\n\t\t======= ATM =======\n\n"COLOR_RESET);
+    printf(COLOR_GREEN "\n\n\t\t======= ATM =======\n\n" COLOR_RESET);
     printf("\n\t\t-->> Feel free to choose one of the options below <<--\n");
     printf("\n\t\t[1]- Create a new account\n");
     printf("\n\t\t[2]- Update account information\n");
@@ -43,18 +44,21 @@ void mainMenu(struct User u)
         exit(1);
         break;
     default:
-        printf("Invalid operation!\n");
+        printf(COLOR_RED "Invalid operation! Try Again\n" COLOR_RESET);
+        sleep(2);
+        mainMenu(u);
         break;
     }
 };
 
+// Displays the init menu for user to login or register
 void initMenu(struct User *u)
 {
     int r = 0;
     int option;
     char name[50], password[50];
     system("clear");
-    printf(COLOR_GREEN"\n\n\t\t======= ATM =======\n"COLOR_RESET);
+    printf(COLOR_GREEN "\n\n\t\t======= ATM =======\n" COLOR_RESET);
     printf("\n\t\t-->> Feel free to login / register :\n");
     printf("\n\t\t[1]- login\n");
     printf("\n\t\t[2]- register\n");
@@ -70,13 +74,13 @@ void initMenu(struct User *u)
             // Attempt to log in and update `u` if successful
             if (getUserDetails(u, password))
             {
-                printf(COLOR_GREEN"\n\nPassword Match! Logged in as user ID %d, Name: %s\n"COLOR_RESET, u->id, u->name);
+                printf(COLOR_GREEN "\n\nPassword Match! Logged in as user ID %d, Name: %s\n" COLOR_RESET, u->id, u->name);
                 sleep(1);
                 r = 1;
             }
             else
             {
-                printf(COLOR_RED"\nWrong password or username!\n"COLOR_RESET);
+                printf(COLOR_RED "\nWrong password or username!\n" COLOR_RESET);
                 sleep(1);
                 exit(1);
             }
@@ -88,20 +92,20 @@ void initMenu(struct User *u)
             scanf("%49s", password);
             if (registerMenu(name, password, u) == 1)
             {
-                printf(COLOR_GREEN"Registration successful!\n"COLOR_RESET);
+                printf(COLOR_GREEN "Registration successful!\n" COLOR_RESET);
                 sleep(1);
                 r = 1; // Set r to 1 to exit the loop
             }
             else
             {
-                printf(COLOR_RED"This username is already used.Please try a different username by selecting register or login.\n"COLOR_RESET);
+                printf(COLOR_RED "This username is already used.Please try a different username by selecting register or login.\n" COLOR_RESET);
             }
             break;
         case 3:
             exit(1);
             break;
         default:
-            printf(COLOR_RED"Insert a valid operation!\n"COLOR_GREEN);
+            printf(COLOR_RED "Invalid Operation!. Try Again.\n" COLOR_RESET);
             break;
         }
     }
