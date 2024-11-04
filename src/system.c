@@ -1057,6 +1057,12 @@ void transferAccount(struct User u)
 
     printf("\nEnter the username of the person you are transfering the account to:");
     scanf("%s", receiverUsername);
+    if (strcmp(u.name, receiverUsername) == 0)
+    {
+        printf(COLOR_YELLOW "You cannot transfer Account number %d to yourself." COLOR_RESET, targetAccountNbr);
+        stayOrReturn(1, transferAccount, u);
+        return;
+    }
 
     FILE *fp;
     struct User receiver;
